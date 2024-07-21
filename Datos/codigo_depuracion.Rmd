@@ -1,0 +1,121 @@
+---
+title: "Codigo de Depuracion"
+author: "Wyndham Daniela"
+date: "2024-07-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r cars}
+
+library(dplyr)
+
+# Cargar el archivo CSV con el separador adecuado
+file_path <- 'BaseDeDatosOriginal.csv'  # Actualiza con la ruta a tu archivo
+data <- read.csv(file_path, sep = ";")  # Ajusta 'sep' según el separador de tu archivo
+
+# Imprimir los nombres de las columnas
+print(colnames(data))
+
+# Renombrar las columnas
+data <- data %>%
+  rename(
+    País = cntry,
+    Confianza_politicos = trstplt,
+    Confianza_parlamento = trstprl,
+    Confianza_partidos_politicos = trstprt,
+    Género = gndr,
+    Edad_del_encuestado_calculada = agea,
+    Interés_en_la_política = polintr,
+    Votó_en_la_última_elección_nacional = vote,
+    Participó_en_una_manifestación_pública_en_los_últimos_12_meses = pbldmna,
+    Sentimiento_de_cercanía_hacia_un_partido_político_en_particular = clsprty
+  )
+
+# Filtrar solo las columnas renombradas
+data <- data %>%
+  select(
+    País, Género, Edad_del_encuestado_calculada,
+    Interés_en_la_política, Confianza_politicos,
+    Confianza_parlamento, Confianza_partidos_politicos,
+    Votó_en_la_última_elección_nacional, Participó_en_una_manifestación_pública_en_los_últimos_12_meses,
+    Sentimiento_de_cercanía_hacia_un_partido_político_en_particular
+  )
+
+# Mapeo de las variables categóricas a sus valores correspondientes
+data$Género <- recode(data$Género, '1' = 'Male', '2' = 'Female', '9' = 'No answer')
+data$Votó_en_la_última_elección_nacional <- recode(data$Votó_en_la_última_elección_nacional, 
+                                                   '1' = 'Yes', '2' = 'No', '3' = 'Not eligible to vote', 
+                                                   '7' = 'Refusal', '8' = "Don't know", '9' = 'No answer')
+data$Participó_en_una_manifestación_pública_en_los_últimos_12_meses <- recode(data$Participó_en_una_manifestación_pública_en_los_últimos_12_meses, 
+                                                                              '1' = 'Yes', '2' = 'No', '7' = 'Refusal', 
+                                                                              '8' = "Don't know", '9' = 'No answer')
+data$Sentimiento_de_cercanía_hacia_un_partido_político_en_particular <- recode(data$Sentimiento_de_cercanía_hacia_un_partido_político_en_particular, 
+                                                                               '1' = 'Yes', '2' = 'No', '7' = 'Refusal', 
+                                                                               '8' = "Don't know", '9' = 'No answer')
+
+data$País <- recode(data$País, 
+                    'AL' = 'Albania', 'AT' = 'Austria', 'BE' = 'Belgium', 'BG' = 'Bulgaria', 'CH' = 'Switzerland',
+                    'CY' = 'Cyprus', 'CZ' = 'Czechia', 'DE' = 'Germany', 'DK' = 'Denmark', 'EE' = 'Estonia',
+                    'ES' = 'Spain', 'FI' = 'Finland', 'FR' = 'France', 'GB' = 'United Kingdom', 'GE' = 'Georgia',
+                    'GR' = 'Greece', 'HR' = 'Croatia', 'HU' = 'Hungary', 'IE' = 'Ireland', 'IS' = 'Iceland',
+                    'IL' = 'Israel', 'IT' = 'Italy', 'LT' = 'Lithuania', 'LU' = 'Luxembourg', 'LV' = 'Latvia',
+                    'ME' = 'Montenegro', 'MK' = 'North Macedonia', 'NL' = 'Netherlands', 'NO' = 'Norway',
+                    'PL' = 'Poland', 'PT' = 'Portugal', 'RO' = 'Romania', 'RS' = 'Serbia', 'RU' = 'Russian Federation',
+                    'SE' = 'Sweden', 'SI' = 'Slovenia', 'SK' = 'Slovakia', 'TR' = 'Turkey', 'UA' = 'Ukraine',
+                    'XK' = 'Kosovo')
+
+# Crear nueva variable de rangos de edad ajustados
+bins <- c(14, 29, 44, 59, 74, 90)
+labels <- c('Jóvenes (15-29)', 'Adultos Jóvenes (30-44)', 'Adultos (45-59)', 'Adultos Mayores (60-74)', 'Ancianos (75-90)')
+data$Rango_Edad <- cut(data$Edad_del_encuestado_calculada, breaks = bins, labels = labels, right = FALSE)
+
+# Crear nueva variable de regiones geográficas
+region_mapping <- list(
+  'Albania' = 'Europa del Sur', 'Austria' = 'Europa Occidental', 'Belgium' = 'Europa Occidental', 'Bulgaria' = 'Europa del Este',
+  'Switzerland' = 'Europa Occidental', 'Cyprus' = 'Europa Central', 'Czechia' = 'Europa del Este', 'Germany' = 'Europa Occidental',
+  'Denmark' = 'Europa del Norte', 'Estonia' = 'Europa del Norte', 'Spain' = 'Europa del Sur', 'Finland' = 'Europa del Norte',
+  'France' = 'Europa Occidental', 'United Kingdom' = 'Europa del Norte', 'Georgia' = 'Europa Central', 'Greece' = 'Europa del Sur',
+  'Croatia' = 'Europa del Sur', 'Hungary' = 'Europa del Este', 'Ireland' = 'Europa del Norte', 'Iceland' = 'Europa del Norte',
+  'Israel' = 'Europa Central', 'Italy' = 'Europa del Sur', 'Lithuania' = 'Europa del Norte', 'Luxembourg' = 'Europa Occidental',
+  'Latvia' = 'Europa del Norte', 'Montenegro' = 'Europa del Sur', 'North Macedonia' = 'Europa del Sur', 'Netherlands' = 'Europa Occidental',
+  'Norway' = 'Europa del Norte', 'Poland' = 'Europa del Este', 'Portugal' = 'Europa del Sur', 'Romania' = 'Europa del Este',
+  'Serbia' = 'Europa del Sur', 'Russian Federation' = 'Europa del Este', 'Sweden' = 'Europa del Norte', 'Slovenia' = 'Europa del Sur',
+  'Slovakia' = 'Europa del Este', 'Turkey' = 'Europa del Sur', 'Ukraine' = 'Europa del Este', 'Kosovo' = 'Europa Central'
+)
+
+data$Region_Geografica <- recode(data$País, !!!region_mapping)
+
+# Variables categóricas incluyendo las nuevas
+categorical_cols <- c('País', 'Género', 'Rango_Edad', 'Region_Geografica')
+
+for (col in categorical_cols) {
+  cat("Frecuencia de", col, ":\n")
+  print(table(data[[col]]))
+  cat("\n")
+}
+
+# Mostrar las primeras filas del dataframe para entender su estructura
+print(head(data %>% select(País, Género, Edad_del_encuestado_calculada, Rango_Edad, Region_Geografica)))
+print(str(data))
+print(summary(data))
+
+
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
