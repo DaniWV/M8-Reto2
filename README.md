@@ -10,14 +10,10 @@ El objetivo de este desafío es analizar variables relacionadas con la confianza
 
 1.  Analizar cómo se distribuyen los niveles de confianza en las instituciones políticas en los diferentes países y regiones de Europa.
 
-```{=html}
-<!-- -->
-```
+
 2.  Analizar cómo varía la confianza en los políticos, el parlamento y los partidos políticos entre las personas que votaron y las que no votaron en las últimas elecciones.
 
-```{=html}
-<!-- -->
-```
+
 3.  Evaluar cómo la participación en manifestaciones públicas en los últimos 12 meses afecta el interés por la política y la confianza en las instituciones políticas.
 
 ## Descripción del Proyecto
@@ -26,7 +22,7 @@ Para este caso se usan datos disponibles en la Encuesta Social Europea (ESS), qu
 
 ## Variables
 
-*.Edad:* La edad es expresada en números enteros que va desde los 15 años hasta los 99. Los registros perdidos son codificados con un 999 pero han sido eliminados para el análisis. Según se declara la edad del encuestado es calculada acorde a la fecha de nacimiento.
+1.*Edad:* La edad es expresada en números enteros que va desde los 15 años hasta los 99. Los registros perdidos son codificados con un 999 pero han sido eliminados para el análisis. Según se declara la edad del encuestado es calculada acorde a la fecha de nacimiento.
 
 2.*Género*: En este caso se registra el sexo reportado por el encuestado entre tres opciones, 1 para hombre, 2 mujer y 9 cuando no hay respuesta -este último dato fue eliminado para el análisis.
 
