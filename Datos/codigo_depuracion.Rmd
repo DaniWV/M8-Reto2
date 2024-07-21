@@ -12,11 +12,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r cars}
+getwd()
 
 library(dplyr)
 
 # Cargar el archivo CSV con el separador adecuado
-file_path <- 'BaseDeDatosOriginal.csv'  # Actualiza con la ruta a tu archivo
+file_path <- 'bd_original.csv'  # Actualiza con la ruta a tu archivo
+
 data <- read.csv(file_path, sep = ";")  # Ajusta 'sep' según el separador de tu archivo
 
 # Imprimir los nombres de las columnas
@@ -110,12 +112,22 @@ print(summary(data))
 
 ```
 
-## Including Plots
+## Crear nueva base de datos depurada
 
-You can also embed plots, for example:
+
 
 ```{r pressure, echo=FALSE}
-plot(pressure)
+
+# Revisar valores faltantes
+missing_values <- colSums(is.na(data))
+
+# Mostrar la cantidad de valores faltantes por columna
+print(missing_values)
+
+write.csv(data, "bd_depurada.csv", row.names = FALSE)
+
+
+
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
