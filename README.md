@@ -10,14 +10,10 @@ El objetivo de este desafío es analizar variables relacionadas con la confianza
 
 1.  Analizar cómo se distribuyen los niveles de confianza en las instituciones políticas en los diferentes países y regiones de Europa.
 
-```{=html}
-<!-- -->
-```
+
 2.  Analizar cómo varía la confianza en los políticos, el parlamento y los partidos políticos entre las personas que votaron y las que no votaron en las últimas elecciones.
 
-```{=html}
-<!-- -->
-```
+
 3.  Evaluar cómo la participación en manifestaciones públicas en los últimos 12 meses afecta el interés por la política y la confianza en las instituciones políticas.
 
 ## Descripción del Proyecto
