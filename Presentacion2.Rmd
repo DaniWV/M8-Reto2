@@ -1,0 +1,139 @@
+---
+title: "Niveles de confianza en Instituciones Políticas en Europa ESS11"
+author: "Wyndham Daniela"
+date: "2024-07-26"
+output: 
+  html_document:
+    toc: true
+    number_sections: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set (echo = FALSE, warning = FALSE, message = FALSE, fig.width=8, fig.height=8)
+```
+
+
+# Hallazgo Principal
+A partir del analisis podemos observar lo siguiente:
+
+**Alta confianza en políticos**: Los encuestados con alta confianza en los políticos tienden a tener una mayor participación en las elecciones.
+**Baja confianza en políticos**: Los encuestados con baja confianza en los políticos muestran una menor participación en las elecciones.
+**Patrón general**: A medida que aumenta la confianza en los políticos, la participación en las elecciones también tiende a aumentar, aunque existen algunas excepciones y variabilidad.
+
+**Discusión**
+Estos resultados sugieren que la confianza en los políticos puede ser un factor importante en la participación electoral. Los individuos que confían más en los políticos parecen estar más motivados para votar, posiblemente porque creen en la efectividad del sistema político y en que su voto puede tener un impacto positivo.
+
+
+```{r}
+
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(ggplot2)
+library(dplyr)
+```
+
+
+```{r}
+
+setwd("C:/Users/Dell/Documents/M8-Reto2/Datos")
+
+data <- read.csv("bd_depurada.csv")
+
+```
+# Graficas correlación
+
+
+```{r}
+# Instalar paquetes necesarios si no están instalados
+if (!require("ggplot2")) install.packages("ggplot2")
+if (!require("dplyr")) install.packages("dplyr")
+
+# Cargar librerías
+library(ggplot2)
+library(dplyr)
+
+# Establecer el directorio de trabajo
+setwd("C:/Users/Dell/Documents/M8-Reto2/Datos")
+
+# Cargar datos
+data <- read.csv("bd_depurada.csv")
+
+# Convertir la variable de participación en un factor
+data$Votó_en_la_última_elección_nacional <- as.factor(data$Votó_en_la_última_elección_nacional)
+
+# Calcular la proporción de votantes por nivel de confianza en políticos
+proporcion_voto <- data %>%
+  group_by(Confianza_politicos, Votó_en_la_última_elección_nacional) %>%
+  summarize(count = n()) %>%
+  mutate(proporcion = count / sum(count))
+
+# Crear el gráfico de barras
+grafico_barras <- ggplot(proporcion_voto, aes(x = as.factor(Confianza_politicos), y = proporcion, fill = Votó_en_la_última_elección_nacional)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Proporción de Participación en las Elecciones por Confianza en Políticos",
+       x = "Confianza en Políticos",
+       y = "Proporción de Participación",
+       fill = "Votó en la Última Elección") +
+  theme_minimal()
+
+# Mostrar el gráfico de barras
+print(grafico_barras)
+
+
+```
+#Tabla resumen
+
+```{r}
+
+# Preparar tabla resumen por país
+summary_table <- data %>%
+  group_by(País) %>%
+  summarize(
+    Media_Confianza_Politicos = mean(Confianza_politicos, na.rm = TRUE),
+    SD_Confianza_Politicos = sd(Confianza_politicos, na.rm = TRUE),
+    Media_Confianza_Parlamento = mean(Confianza_parlamento, na.rm = TRUE),
+    SD_Confianza_Parlamento = sd(Confianza_parlamento, na.rm = TRUE),
+    Media_Confianza_Partidos_Politicos = mean(Confianza_partidos_politicos, na.rm = TRUE),
+    SD_Confianza_Partidos_Politicos = sd(Confianza_partidos_politicos, na.rm = TRUE)
+  )
+
+# Imprimir la tabla resumen
+summary_table %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+```
+# Gráfico de la media de la confianza en políticos por país
+
+```{r}
+ggplot(summary_table, aes(x = reorder(País, -Media_Confianza_Politicos), y = Media_Confianza_Politicos)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  labs(title = "Media de la Confianza en Políticos por País", x = "País", y = "Media de la Confianza en Políticos") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+# Gráfico de la media de la confianza en el parlamento por país
+
+```{r}
+ggplot(summary_table, aes(x = reorder(País, -Media_Confianza_Parlamento), y = Media_Confianza_Parlamento)) +
+  geom_bar(stat = "identity", fill = "green") +
+  labs(title = "Media de la Confianza en el Parlamento por País", x = "País", y = "Media de la Confianza en el Parlamento") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+# Gráfico de la media de la confianza en los partidos políticos por país
+
+```{r}
+ggplot(summary_table, aes(x = reorder(País, -Media_Confianza_Partidos_Politicos), y = Media_Confianza_Partidos_Politicos)) +
+  geom_bar(stat = "identity", fill = "red") +
+  labs(title = "Media de la Confianza en los Partidos Políticos por País", x = "País", y = "Media de la Confianza en los Partidos Políticos") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+
+
+
