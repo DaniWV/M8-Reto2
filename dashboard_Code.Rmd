@@ -1,0 +1,215 @@
+---
+title: "Confianza en las instituciones políticas en Europa"
+author: "Wyndham Daniela"
+output:
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+    source_code: embed
+    runtime: shiny
+---
+
+```{r setup, include=FALSE}
+
+# Configuración global para suprimir los warnings
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+# Establecer el directorio raíz para todo el documento
+setwd("C:/Users/Dell/Documents/M8-Reto2/Datos")
+
+# Instalar paquetes necesarios (solo si no están instalados)
+if(!require(flexdashboard)) install.packages("flexdashboard")
+if(!require(tidyverse)) install.packages("tidyverse")
+if(!require(maps)) install.packages("maps")
+if(!require(DT)) install.packages("DT")
+if(!require(shiny)) install.packages("shiny")
+
+# Cargar librerías
+library(flexdashboard)
+library(tidyverse)
+library(maps)
+library(DT)
+library(shiny)
+
+# Verificar la ruta de trabajo actual
+print(getwd())
+
+# Listar archivos en el directorio actual para asegurarse de que el archivo está presente
+print(list.files())
+
+# Cargar el archivo CSV
+file_path <- 'bd_depurada.csv'
+datos <- read_csv(file_path)
+print(datos)
+
+
+```
+
+
+Gráficos {data-icon="fa-chart-bar"}
+======================================================================================================================
+
+```{css}
+.sidebar {
+  background-color: #f5f5f5;
+  padding: 20px;
+  border-right: 1px solid #ddd;
+}
+```
+Barra de Selección {.sidebar}
+-------------------------------------------------------------------
+```{r}
+
+# Menú lateral para seleccionar el tipo de confianza y el país
+selectInput("tipo_confianza", "Selecciona el tipo de confianza:",
+            choices = list("Confianza en los Partidos Políticos" = "Confianza_partidos_politicos",
+                           "Confianza en el Parlamento" = "Confianza_parlamento",
+                           "Confianza en los Políticos" = "Confianza_politicos"))
+
+selectInput("pais", "Selecciona el país:",
+            choices = unique(datos$País))
+
+```
+
+
+Column {data-width= 500}
+-----------------------------------------------------------------------
+
+### Niveles de confianza en `r reactive(input$tipo_confianza)`
+
+
+```{r}
+renderPlot({
+  tipo_confianza <- input$tipo_confianza
+  
+  # Filtrar datos por países de Europa
+  europa <- map_data("world", region = c("Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", 
+                                         "Czech Republic", "Denmark", "Estonia", "Finland", "France", 
+                                         "Germany", "Greece", "Hungary", "Ireland", "Italy", 
+                                         "Latvia", "Lithuania", "Luxembourg", "Malta", "Netherlands", 
+                                         "Poland", "Portugal", "Romania", "Slovakia", "Slovenia", 
+                                         "Spain", "Sweden", "United Kingdom"))
+  
+  # Promediar los niveles de confianza seleccionados por región
+  datos_promedio <- datos %>%
+    group_by(Region_Geografica) %>%
+    summarize(Confianza = mean(get(tipo_confianza), na.rm = TRUE))
+  
+  # Crear un dataframe de regiones para el mapa
+  regiones <- data.frame(region = c("Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", 
+                                    "Czech Republic", "Denmark", "Estonia", "Finland", "France", 
+                                    "Germany", "Greece", "Hungary", "Ireland", "Italy", 
+                                    "Latvia", "Lithuania", "Luxembourg", "Malta", "Netherlands", 
+                                    "Poland", "Portugal", "Romania", "Slovakia", "Slovenia", 
+                                    "Spain", "Sweden", "United Kingdom"),
+                         Region_Geografica = c("Europa Occidental", "Europa Occidental", "Europa del Este", "Europa del Este", 
+                                               "Europa del Sur", "Europa Central", "Europa del Norte", "Europa del Norte", 
+                                               "Europa del Norte", "Europa Occidental", "Europa Central", "Europa del Sur", 
+                                               "Europa Central", "Europa Occidental", "Europa del Sur", "Europa del Norte", 
+                                               "Europa del Norte", "Europa Occidental", "Europa del Sur", "Europa Occidental", 
+                                               "Europa Central", "Europa del Sur", "Europa del Este", "Europa Central", 
+                                               "Europa Central", "Europa del Sur", "Europa del Norte", "Europa Occidental"))
+  
+  # Unir datos de confianza con regiones
+  datos_regiones <- merge(regiones, datos_promedio, by = "Region_Geografica", all.x = TRUE)
+  
+  # Unir datos con mapa de Europa
+  europa <- merge(europa, datos_regiones, by.x = "region", by.y = "region", all.x = TRUE)
+  
+  # Graficar el mapa
+  ggplot(data = europa, aes(x = long, y = lat, group = group, fill = Confianza)) +
+    geom_polygon(color = "white") +
+    scale_fill_viridis_c(option = "C", na.value = "grey50") +
+    labs(fill = "Nivel de Confianza") +
+    theme_minimal() +
+    theme(legend.position = "bottom")
+})
+
+
+
+
+```
+
+Column {data-width= 400}
+-----------------------------------------------------------------------
+
+### Confianza y Participación en las Últimas Elecciones en `r reactive(input$pais)`
+
+```{r}
+renderPlot({
+  tipo_confianza <- input$tipo_confianza
+  pais <- input$pais
+  
+  # Filtrar datos por el país seleccionado
+  datos_filtrados <- datos %>% filter(País == pais)
+  
+  # Graficar la confianza en los políticos por participación en las últimas elecciones
+  ggplot(datos_filtrados, aes(x = Votó_en_la_última_elección_nacional, y = get(tipo_confianza), fill = Votó_en_la_última_elección_nacional)) +
+    geom_boxplot() +
+    labs(x = "Votó en la Última Elección Nacional",
+         y = "Nivel de Confianza") +
+    theme_minimal() +
+    theme(legend.position = "none")
+})
+
+
+```
+
+Column {data-width= 400}
+-----------------------------------------------------------------------
+
+### Confianza por Grupo Etario para `r reactive(input$pais)`
+
+```{r}
+
+renderPlot({
+  tipo_confianza <- input$tipo_confianza
+  pais <- input$pais
+  
+  # Filtrar datos por el país seleccionado
+  datos_filtrados <- datos %>% filter(País == pais)
+  
+  # Graficar la confianza en los políticos por grupo etario
+  ggplot(datos_filtrados, aes(x = Rango_Edad, y = get(tipo_confianza), fill = Rango_Edad)) +
+    geom_bar(stat = "summary", fun = "mean") +
+    labs(x = "Grupo Etario",
+         y = "Nivel de Confianza Promedio") +
+    theme_minimal() +
+    theme(legend.position = "none")
+})
+
+```
+
+
+Tabla de Datos {data-icon="fa-table"}
+===============================================================================
+
+Column {data-width=300}
+---------------------------------------------------------
+
+```{r}
+datatable(datos,
+          caption = 'Datos de Confianza en Instituciones Políticas',
+          rownames = FALSE,
+          filter = 'top',
+          options = list(pageLength = 15, # Mostrar los primeros 15 resultados por página
+                         autoWidth = TRUE)) # Ajustar automáticamente el ancho de las columnas
+```
+Acerca del estudio {data-icon="fa-globe"}
+====================================================================
+
+Inputs {.sidebar data-height=900}
+------------------------------------------------
+Para este caso se usan datos disponibles en la **Encuesta Social Europea (ESS)**, que es un estudio de investigación comparativa que se realiza cada dos años y cubre más de 30 países europeos. Desde su inicio en 2002, el ESS ha sido una fuente crucial de datos sobre una amplia gama de temas sociales, incluyendo, pero no limitándose a, **confianza en las instituciones políticas, participación ciudadana**, bienestar, actitudes hacia la inmigración, valores familiares y laborales, y percepciones de seguridad.
+
+El ESS se distingue por su metodología rigurosa, que incluye un diseño de muestra aleatoria estrictamente probabilístico, cuestionarios estandarizados y entrevistas cara a cara para asegurar la comparabilidad y la calidad de los datos recopilados. **Los países participantes incluyen Alemania, Austria, Croacia, Eslovaquia, Eslovenia, Finlandia, Hungría, Irlanda, Lituania, Noruega, Países Bajos, Reino Unido y Suiza.** Coordinada por Rory Fitzgerald en la City University de Londres.
+
+*Variables Seleccionadas*
+
+Se seleccionaron **9 variables en total**, 3 relacionadas a datos demográficos (*edad,nacionalidad y género*), 2 relacionadas a participación (*votación en las últimas elecciones y particiáción en manifestaciones*), 1 relacionada al interés en la política (*interés en la política*) y 3 sobre confianza en las instituciones políticas (*partidos políticos, políticos y parlamento*).
+
+
+
+
+
+
